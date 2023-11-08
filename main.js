@@ -10,7 +10,7 @@ const INITIAL_SESSION= {
     messages: [],
 }
 
-const bot = new Telegraf('6960345349:AAHZh3X3ddRbRudqbJvr6qDyhhch44HGz2g')
+const bot = new Telegraf('TOKEN')
 
 const dict_v= {}
 const dict_t= {}
