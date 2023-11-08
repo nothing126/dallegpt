@@ -42,17 +42,19 @@ class openAI{
             console.log('error while transcription', e.message)
         }
     }
-    async dalle(promt){
-        const response = await this.openai.images.generate({
-            prompt:String(promt),
-            n: 1,
-            size: "1024x1024"
-        })
-        return response.data[0].url
-    }
+    async dalle(promt) {
+        try {
+            const response = await this.openai.images.generate({
+                prompt: String(promt),
+                n: 1,
+                size: "1024x1024"
+            })
+            return response.data[0].url
 
+        }catch (e){
+            console.log('error in generating img',e)
+        }
+    }
 }
 
-
-
-export const openai = new openAI('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')
+export const openai = new openAI('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')
