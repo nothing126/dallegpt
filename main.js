@@ -3,7 +3,8 @@ import {openai} from './openai.js'
 import { Telegraf,Markup} from 'telegraf';
 import {code} from 'telegraf/format'
 import { message } from "telegraf/filters";
-import {downloadImage}  from 'image.js'
+import {downloadImage}  from "./image.js"
+import {remove_file} from "./remove.js";
 
 const INITIAL_SESSION= {
     messages: [],
@@ -16,18 +17,26 @@ const dict_t= {}
 
 
 bot.command('start', async (ctx)=>{
-    await ctx.reply(code('Жду ваш запрос'))
+    try {
+        await ctx.reply(code('Жду ваш запрос'))
+    }catch (e) {
+        console.log('error in start command',e)
+    }
 })
 
 bot.on(message('text'), async ctx =>{
-    const txt= await ctx.message.text
-    const user_id = String(ctx.message.from.id)
-    dict_t['id']=user_id
-    dict_t[user_id]=String(txt)
-    ctx.reply('Что вы хотите сделать?', Markup.inlineKeyboard([
-        [Markup.button.callback('спросить у chatGPT', 'GPT_txt')],
-       [ Markup.button.callback('сгенерировать картинку', 'pict_txt')]
-    ]))
+    try {
+        const txt = await ctx.message.text
+        const user_id = String(ctx.message.from.id)
+        dict_t['id'] = user_id
+        dict_t[user_id] = String(txt)
+        ctx.reply('Что вы хотите сделать?', Markup.inlineKeyboard([
+            [Markup.button.callback('спросить у chatGPT', 'GPT_txt')],
+            [Markup.button.callback('сгенерировать картинку', 'pict_txt')]
+        ]))
+    }catch (e) {
+        console.log('error while text message', e)
+    }
 })
 
 bot.on(message('voice'), async ctx =>{
@@ -41,7 +50,6 @@ bot.on(message('voice'), async ctx =>{
         dict_v['id']=user_id
         dict_v[user_id]=String(text)
         await ctx.reply(code(`текст сообщения: ${text}`))
-
         await ctx.reply('Что вы хотите сделать?', Markup.inlineKeyboard([
             [Markup.button.callback('спросить у chatGPT', 'GPT_voice')],
             [Markup.button.callback('сгенерировать картинку', 'pict_voice')],
@@ -84,9 +92,7 @@ bot.action('GPT_txt', async (ctx)=>{
             role: openai.roles.ASSISTANT,
             content: responce
         })
-
         await ctx.reply(`ответ от chatGPT: ${responce}`)
-
     }catch (e){
         console.log('error',e)
     }
@@ -99,10 +105,25 @@ bot.action('pict_txt', async (ctx)=>{
         const text = dict_t[id]
         const url = await openai.dalle(text)
         const image_path = await downloadImage(url, id)
+        ctx.replyWithDocument({source: image_path})
+        await remove_file(image_path)
     }catch (e) {
         console.log('error while sending img',e)
     }
+})
 
+bot.action('pict_voice', async (ctx)=>{
+    try {
+        ctx.reply(code('генерация картинки...'))
+        const id = dict_v['id']
+        const text = dict_v[id]
+        const url = await openai.dalle(text)
+        const image_path = await downloadImage(url, id)
+         ctx.replyWithDocument({source: image_path})
+        await remove_file(image_path)
+    }catch (e) {
+        console.log('error while sending img',e)
+    }
 })
 
 bot.launch()
