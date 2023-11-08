@@ -1,6 +1,10 @@
 import axios from "axios";
 import { createWriteStream } from 'fs';
-import {resolve} from "path";
+import {dirname, resolve} from "path";
+import {fileURLToPath} from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
      export async function downloadImage(url, filename) {
          try {
              const Path = resolve(__dirname, 'C:\\Users\\ajiga\\WebstormProjects\\untitled2\\img', `${filename}.png`)
